@@ -324,6 +324,94 @@ public class HppRequest {
 	private String hppSelectStoredCard;
 
 	/**
+	 * The displayCvn field allows the merchant to not display the CVN field in the payment form
+	 */
+	@Pattern(regexp = "^(TRUE|FALSE|true|false)*$", message = "{hppRequest.hppDisplayCvn.pattern}")
+	@JsonInclude(Include.NON_EMPTY)
+	@JsonProperty("HPP_DISPLAY_CVN")
+	private String displayCvn;
+
+	/**
+	 * The total amount to authorise if the card is a debit card
+	 */
+	@Size(min = 0, max = 11, message = "{hppRequest.amount.debit.size}")
+	@Pattern(regexp = "^[0-9]*$", message = "{hppRequest.amount.debit.pattern}")
+	@JsonInclude(Include.NON_EMPTY)
+	@JsonProperty("HPP_AMOUNT_DEBIT")
+	private String amountDebit;
+
+	/**
+	 * The total amount to authorise if the card is a credit card
+	 */
+	@Size(min = 0, max = 11, message = "{hppRequest.amount.credit.size}")
+	@Pattern(regexp = "^[0-9]*$", message = "{hppRequest.amount.credit.pattern}")
+	@JsonInclude(Include.NON_EMPTY)
+	@JsonProperty("HPP_AMOUNT_CREDIT")
+	private String amountCredit;
+
+	/**
+	 * The total amount to authorise if the card is a commercial card
+	 */
+	@Size(min = 0, max = 11, message = "{hppRequest.amount.commercial.size}")
+	@Pattern(regexp = "^[0-9]*$", message = "{hppRequest.amount.commercial.pattern}")
+	@JsonInclude(Include.NON_EMPTY)
+	@JsonProperty("HPP_AMOUNT_COMMERCIAL")
+	private String amountCommercial;
+
+	/**
+	 * Helper method to add HPP Version flag.
+	 * 
+	 * @param amountDebit
+	 * @return HppRequest
+	 */
+	public HppRequest addAmountDebit(String amountDebit) {
+		this.amountDebit = amountDebit;
+		return this;
+	}
+
+	/**
+	 * Helper method to add HPP Version flag.
+	 * 
+	 * @param amountCredit
+	 * @return HppRequest
+	 */
+	public HppRequest addAmoutCredit(String amountCredit) {
+		this.amountCredit = amountCredit;
+		return this;
+	}
+
+	/**
+	 * Helper method to add HPP Version flag.
+	 * 
+	 * @param amountCommercial
+	 * @return HppRequest
+	 */
+	public HppRequest addAmoutCommercial(String amountCommercial) {
+		this.amountCommercial = amountCommercial;
+		return this;
+	}
+
+	/**
+	 * Getter for displayCvn.
+	 * 
+	 * @return String
+	 */
+	public String getDisplayCvn() {
+		return displayCvn;
+	}
+
+	/**
+	 * Helper method to add displayCvn flag.
+	 * 
+	 * @param displayCvn the HppDisplayCvn field
+	 * @return HppRequest
+	 */
+	public HppRequest addDisplayCvn(String displayCvn) {
+		this.displayCvn = displayCvn;
+		return this;
+	}
+	
+	/**
 	 * Getter for merchant ID.
 	 * 
 	 * @return String
@@ -573,6 +661,54 @@ public class HppRequest {
 	 */
 	public String getHppFraudFilterMode() {
 		return hppFraudFilterMode;
+	}
+
+	/**
+	 * Getter for amount Debit
+	 * @return String
+	 */
+	public String getAmountDebit() {
+		return amountDebit;
+	}
+
+	/**
+	 * Setter for amount Debit
+	 * @param amountDebit
+	 */
+	public void setAmountDebit(String amountDebit) {
+		this.amountDebit = amountDebit;
+	}
+
+	/**
+	 * Getter for amount Credit
+	 * @return String
+	 */
+	public String getAmountCredit() {
+		return amountCredit;
+	}
+
+	/**
+	 * Setter for amount Credit
+	 * @param amountCredit
+	 */
+	public void setAmountCredit(String amountCredit) {
+		this.amountCredit = amountCredit;
+	}
+
+	/**
+	 * Getter for amount commercial
+	 * @return String
+	 */
+	public String getAmountCommercial() {
+		return amountCommercial;
+	}
+
+	/**
+	 * Setter for amount commercial
+	 * @param amountCommercial
+	 */
+	public void setAmountCommercial(String amountCommercial) {
+		this.amountCommercial = amountCommercial;
 	}
 
 	/**
@@ -827,6 +963,15 @@ public class HppRequest {
 		this.hppFraudFilterMode = hppFraudFilterMode;
 	}
 
+	/**
+	 * Setter for displayCvn flag.
+	 * 
+	 * @param displayCvn
+	 */
+	public void setDisplayCvn(String displayCvn) {
+		this.displayCvn = displayCvn;
+	}
+	
 	/**
 	 * Helper method to add merchant ID.
 	 * 
@@ -1317,24 +1462,40 @@ public class HppRequest {
 		String paymentReference = null == this.paymentReference ? "" : this.paymentReference;
 		String hppFraudFilterMode = null == this.hppFraudFilterMode ? "" : this.hppFraudFilterMode;
 
+		String displayCvn = null == this.displayCvn ? "" : this.displayCvn;
+		String amountDebit = null == this.amountDebit ? "" : this.amountDebit;
+		String amountCredit = null == this.amountCredit ? "" : this.amountCredit;
+		String amountCommercial = null == this.amountCommercial ? "" : this.amountCommercial;
+
 		//create String to hash. Check for card storage enable flag to determine if Real Vault transaction 
 		StringBuilder toHash = new StringBuilder();
 
+		toHash.append(timeStamp).append(".").append(merchantId).append(".").append(orderId).append(".").append(amount);
+
+		if (!amountDebit.equals("")) {
+			toHash.append(".").append(this.amountDebit);
+		}
+
+		if (!amountCredit.equals("")) {
+			toHash.append(".").append(this.amountCredit);
+		}
+
+		if (!amountCommercial.equals("")) {
+			toHash.append(".").append(this.amountCommercial);
+		}
+
+		toHash.append(".").append(currency);
+
 		if (Flag.TRUE.getFlag().equals(cardStorageEnable) || (hppSelectStoredCard != null && !hppSelectStoredCard.isEmpty())) {
-			toHash.append(timeStamp).append(".").append(merchantId).append(".").append(orderId).append(".").append(amount).append(".")
-					.append(currency).append(".").append(payerReference).append(".").append(paymentReference);
+			toHash.append(".").append(payerReference).append(".").append(paymentReference);
+		}
 
-			if (!hppFraudFilterMode.equals("")) {
-				toHash.append(".").append(this.hppFraudFilterMode);
-			}
+		if (!hppFraudFilterMode.equals("")) {
+			toHash.append(".").append(this.hppFraudFilterMode);
+		}
 
-		} else {
-			toHash.append(timeStamp).append(".").append(merchantId).append(".").append(orderId).append(".").append(amount).append(".")
-					.append(currency);
-
-			if (!hppFraudFilterMode.equals("")) {
-				toHash.append(".").append(this.hppFraudFilterMode);
-			}
+		if (!displayCvn.equals("")) {
+			toHash.append(".").append(this.displayCvn);
 		}
 
 		this.hash = GenerationUtils.generateHash(toHash.toString(), secret);
@@ -1342,6 +1503,7 @@ public class HppRequest {
 		return this;
 	}
 
+	
 	/**
 	 * Generates default values for fields such as hash, timestamp and order ID.
 	 * 
@@ -1473,7 +1635,18 @@ public class HppRequest {
 		if (null != this.hppSelectStoredCard) {
 			this.hppSelectStoredCard = new String(Base64.encodeBase64(this.hppSelectStoredCard.getBytes(charset)));
 		}
-
+		if (null != this.displayCvn) {
+			this.displayCvn = new String(Base64.encodeBase64(this.displayCvn.getBytes(charset)));
+		}
+		if (null != this.amountDebit) {
+			this.amountDebit = new String(Base64.encodeBase64(this.amountDebit.getBytes(charset)));
+		}
+		if (null != this.amountCredit) {
+			this.amountCredit = new String(Base64.encodeBase64(this.amountCredit.getBytes(charset)));
+		}
+		if (null != this.amountCommercial) {
+			this.amountCommercial = new String(Base64.encodeBase64(this.amountCommercial.getBytes(charset)));
+		}
 		return this;
 	}
 
@@ -1584,7 +1757,18 @@ public class HppRequest {
 		if (null != this.hppSelectStoredCard) {
 			this.hppSelectStoredCard = new String(Base64.decodeBase64(this.hppSelectStoredCard.getBytes(charset)));
 		}
-
+		if (null != this.displayCvn) {
+			this.displayCvn = new String(Base64.decodeBase64(this.displayCvn.getBytes(charset)));
+		}
+		if (null != this.amountDebit) {
+			this.amountDebit = new String(Base64.decodeBase64(this.amountDebit.getBytes(charset)));
+		}
+		if (null != this.amountCredit) {
+			this.amountCredit = new String(Base64.decodeBase64(this.amountCredit.getBytes(charset)));
+		}
+		if (null != this.amountCommercial) {
+			this.amountCommercial = new String(Base64.decodeBase64(this.amountCommercial.getBytes(charset)));
+		}
 		return this;
 	}
 
